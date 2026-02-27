@@ -1,0 +1,122 @@
+.connect-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 80px);
+  padding: var(--space-6);
+}
+
+.connect-hero {
+  text-align: center;
+  max-width: 600px;
+}
+
+.connect-icon {
+  display: inline-flex;
+  margin-bottom: var(--space-6);
+}
+
+.connect-title {
+  font-size: var(--fs-4xl);
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: var(--space-4);
+}
+
+.connect-title-accent {
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.connect-subtitle {
+  color: var(--text-secondary);
+  font-size: var(--fs-lg);
+  max-width: 480px;
+  margin: 0 auto var(--space-8);
+  line-height: 1.7;
+}
+
+.connect-form {
+  margin-bottom: var(--space-10);
+}
+
+.connect-input-group {
+  display: flex;
+  gap: var(--space-3);
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.connect-input {
+  flex: 1;
+  font-size: var(--fs-lg);
+  padding: var(--space-4) var(--space-5);
+}
+
+.connect-btn {
+  flex-shrink: 0;
+}
+
+.connect-error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  justify-content: center;
+  margin-top: var(--space-4);
+  color: var(--error);
+  font-size: var(--fs-sm);
+}
+
+.connect-features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+  text-align: left;
+}
+
+.connect-feature {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  padding: var(--space-4);
+  background: var(--bg-glass);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-base);
+}
+
+.connect-feature:hover {
+  border-color: var(--border-hover);
+  background: var(--bg-glass-hover);
+}
+
+.connect-feature-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.connect-feature h3 {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  margin-bottom: var(--space-1);
+}
+
+.connect-feature p {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+@media (max-width: 640px) {
+  .connect-input-group {
+    flex-direction: column;
+  }
+  .connect-features {
+    grid-template-columns: 1fr;
+  }
+  .connect-title {
+    font-size: var(--fs-2xl);
+  }
+}

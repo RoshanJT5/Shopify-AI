@@ -1,0 +1,125 @@
+{
+  "name": "Shopify AI Builder V1",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Shopify Store Builder",
+        "formFields": {
+          "values": [
+            { "label": "Brand Name", "type": "text" },
+            { "label": "Business Niche", "type": "text" },
+            { "label": "Target Audience", "type": "text" },
+            { "label": "Brand Style", "type": "text" },
+            { "label": "Color Preference", "type": "text" },
+            { "label": "Product Details", "type": "textarea" },
+            { "label": "Extra Instructions", "type": "textarea" }
+          ]
+        }
+      },
+      "name": "Form Trigger",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "clientBrief",
+              "value": "Brand: {{$json[\"Brand Name\"]}}\nNiche: {{$json[\"Business Niche\"]}}\nTarget: {{$json[\"Target Audience\"]}}\nStyle: {{$json[\"Brand Style\"]}}\nColors: {{$json[\"Color Preference\"]}}\nProducts: {{$json[\"Product Details\"]}}\nExtra: {{$json[\"Extra Instructions\"]}}"
+            }
+          ]
+        }
+      },
+      "name": "Prepare Brief",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "method": "POST",
+        "authentication": "none",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "{\n  \"model\": \"openai/gpt-3.5-turbo\",\n  \"messages\": [\n    {\"role\": \"system\", \"content\": \"You are a Shopify store architect.\"},\n    {\"role\": \"user\", \"content\": \"Here is the client brief:\\n\\n{{$json[\"clientBrief\"]}}\\n\\nReturn ONLY valid JSON in this format:\\n{\\n  \\\"brand_name\\\": \\\"\\\",\\n  \\\"tone\\\": \\\"\\\",\\n  \\\"colors\\\": [],\\n  \\\"products\\\": [\\n    {\\\"title\\\": \\\"\\\", \\\"description\\\": \\\"\\\", \\\"price\\\": \\\"\\\"}\\n  ],\\n  \\\"pages\\\": [\\n    {\\\"title\\\": \\\"\\\", \\\"content\\\": \\\"\\\"}\\n  ]\\n}\"}\n  ],\n  \"max_tokens\": 800,\n  \"temperature\": 0.7\n}"
+      },
+      "name": "OpenRouter AI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [700, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const output = $json[\"choices\"][0][\"message\"][\"content\"];\nlet parsed;\ntry {\n  parsed = JSON.parse(output);\n} catch (e) {\n  throw new Error(\"AI did not return valid JSON\");\n}\nreturn [{ json: parsed }];"
+      },
+      "name": "Parse JSON",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [950, 300]
+    },
+    {
+      "parameters": {
+        "batchSize": 1
+      },
+      "name": "Split Products",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 2,
+      "position": [1150, 200]
+    },
+    {
+      "parameters": {
+        "resource": "product",
+        "operation": "create",
+        "title": "={{$json[\"title\"]}}",
+        "descriptionHtml": "={{$json[\"description\"]}}",
+        "variants": [
+          { "price": "={{$json[\"price\"]}}" }
+        ]
+      },
+      "name": "Create Product",
+      "type": "n8n-nodes-base.shopify",
+      "typeVersion": 1,
+      "position": [1350, 200],
+      "credentials": { "shopifyOAuth2Api": { "id": "REPLACE_CREDENTIAL", "name": "Shopify OAuth" } }
+    },
+    {
+      "parameters": {
+        "batchSize": 1
+      },
+      "name": "Split Pages",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 2,
+      "position": [1150, 450]
+    },
+    {
+      "parameters": {
+        "resource": "page",
+        "operation": "create",
+        "title": "={{$json[\"title\"]}}",
+        "body": "={{$json[\"content\"]}}"
+      },
+      "name": "Create Page",
+      "type": "n8n-nodes-base.shopify",
+      "typeVersion": 1,
+      "position": [1350, 450],
+      "credentials": { "shopifyOAuth2Api": { "id": "REPLACE_CREDENTIAL", "name": "Shopify OAuth" } }
+    }
+  ],
+  "connections": {
+    "Form Trigger": { "main": [[{ "node": "Prepare Brief", "type": "main", "index": 0 }]] },
+    "Prepare Brief": { "main": [[{ "node": "OpenRouter AI", "type": "main", "index": 0 }]] },
+    "OpenRouter AI": { "main": [[{ "node": "Parse JSON", "type": "main", "index": 0 }]] },
+    "Parse JSON": {
+      "main": [
+        [{ "node": "Split Products", "type": "main", "index": 0 }],
+        [{ "node": "Split Pages", "type": "main", "index": 0 }]
+      ]
+    },
+    "Split Products": { "main": [[{ "node": "Create Product", "type": "main", "index": 0 }]] },
+    "Split Pages": { "main": [[{ "node": "Create Page", "type": "main", "index": 0 }]] }
+  }
+}

@@ -1,0 +1,52 @@
+.dashboard-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.dashboard-sidebar {
+  min-width: 0;
+}
+
+/* ─── Result Banner ──────────────────────────────────── */
+.result-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+}
+
+.result-success {
+  background: var(--success-bg);
+  border-color: rgba(52, 211, 153, 0.3);
+}
+
+.result-error {
+  background: var(--error-bg);
+  border-color: rgba(248, 113, 113, 0.3);
+}
+
+.result-icon {
+  flex-shrink: 0;
+  display: flex;
+}
+
+.result-message {
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+
+.result-success .result-message {
+  color: var(--success);
+}
+
+.result-error .result-message {
+  color: var(--error);
+}
+
+@media (max-width: 1024px) {
+  .dashboard-sidebar {
+    order: -1;
+  }
+}
