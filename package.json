@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "description": "AI-powered Shopify store management agent",
   "private": true,
-  "workspaces": ["server", "client"],
   "scripts": {
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
-    "dev:server": "cd server && npm run dev",
-    "dev:client": "cd client && npm run dev",
-    "build": "cd client && npm run build",
-    "start": "cd server && npm start"
+    "dev:server": "node --watch server/index.js",
+    "dev:client": "npm run dev --prefix client",
+    "build": "npm install --prefix client && npm run build --prefix client",
+    "start": "node server/index.js",
+    "vercel-build": "npm install --prefix client && npm run build --prefix client"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
