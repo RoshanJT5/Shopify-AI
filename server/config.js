@@ -23,14 +23,11 @@ const config = {
   sessionSecret: process.env.SESSION_SECRET || 'dev-secret-change-me',
 };
 
-// Validate critical config in production
-if (config.nodeEnv === 'production') {
-  const required = ['SHOPIFY_CLIENT_ID', 'SHOPIFY_CLIENT_SECRET', 'OPENROUTER_API_KEY', 'SESSION_SECRET'];
-  const missing = required.filter(key => !process.env[key]);
-  if (missing.length > 0) {
-    console.error(`Missing required environment variables: ${missing.join(', ')}`);
-    process.exit(1);
-  }
+// Validate critical config — warn but don't crash (for serverless compatibility)
+const _required = ['SHOPIFY_CLIENT_ID', 'SHOPIFY_CLIENT_SECRET', 'OPENROUTER_API_KEY', 'SESSION_SECRET'];
+const _missing = _required.filter(key => !process.env[key]);
+if (_missing.length > 0) {
+  console.warn(`⚠️  Missing environment variables: ${_missing.join(', ')}. Some features will not work.`);
 }
 
 export default config;

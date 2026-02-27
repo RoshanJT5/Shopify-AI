@@ -17,10 +17,10 @@ const app = express();
 
 // ─── Middleware ───────────────────────────────────────────
 
-// CORS — allow frontend dev server
+// CORS — allow frontend (Vercel deploys frontend and backend on different domains)
 app.use(cors({
   origin: config.nodeEnv === 'production'
-    ? false // Same origin in production
+    ? true // Allow all origins in production (Vercel handles this)
     : ['http://localhost:5173', 'http://127.0.0.1:5173'],
   credentials: true,
 }));
@@ -38,7 +38,7 @@ app.use(session({
     secure: config.nodeEnv === 'production',
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    sameSite: 'lax',
+    sameSite: config.nodeEnv === 'production' ? 'none' : 'lax',
   },
 }));
 
@@ -60,13 +60,13 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    shopifyConnected: !!req.session.shopifyAccessToken,
+    shopifyConnected: !!req.session?.shopifyAccessToken,
   });
 });
 
-// ─── Serve Frontend (Production) ─────────────────────────
+// ─── Serve Frontend (Production — non-Vercel) ────────────
 
-if (config.nodeEnv === 'production') {
+if (config.nodeEnv === 'production' && !process.env.VERCEL) {
   const clientDist = path.join(__dirname, '..', 'client', 'dist');
   app.use(express.static(clientDist));
   app.get('*', (req, res) => {
@@ -74,14 +74,25 @@ if (config.nodeEnv === 'production') {
   });
 }
 
+// Root route for Vercel health
+app.get('/', (req, res) => {
+  res.json({
+    name: 'Shopify AI Agent API',
+    status: 'running',
+    version: '1.0.0',
+    endpoints: ['/auth/status', '/api/health', '/api/execute', '/api/shopify', '/api/history'],
+  });
+});
+
 // ─── Error Handler ───────────────────────────────────────
 
 app.use(errorHandler);
 
-// ─── Start Server ────────────────────────────────────────
+// ─── Start Server (only when not on Vercel) ──────────────
 
-app.listen(config.port, () => {
-  console.log(`
+if (!process.env.VERCEL) {
+  app.listen(config.port, () => {
+    console.log(`
 ╔═══════════════════════════════════════════════╗
 ║         Shopify AI Agent Backend              ║
 ║───────────────────────────────────────────────║
@@ -89,7 +100,9 @@ app.listen(config.port, () => {
 ║  Mode:    ${config.nodeEnv.padEnd(36)}║
 ║  AI:      ${(config.openrouter.model || 'not configured').padEnd(36)}║
 ╚═══════════════════════════════════════════════╝
-  `);
-});
+    `);
+  });
+}
 
+// Export for Vercel serverless
 export default app;

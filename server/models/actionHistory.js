@@ -1,35 +1,15 @@
-import Database from 'better-sqlite3';
 import { v4 as uuidv4 } from 'uuid';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DB_PATH = path.join(__dirname, '..', 'action_history.db');
 
 /**
- * SQLite-backed action history for undo/redo support.
- * Stores before/after snapshots of every executed action batch.
+ * In-memory action history for serverless environments.
+ * For production persistence, swap this with a database (e.g. Supabase, PlanetScale).
+ * 
+ * Note: In serverless (Vercel), this resets between cold starts.
+ * For local dev, it persists during the server session.
  */
 class ActionHistory {
   constructor() {
-    this.db = new Database(DB_PATH);
-    this._init();
-  }
-
-  _init() {
-    this.db.exec(`
-      CREATE TABLE IF NOT EXISTS action_history (
-        id TEXT PRIMARY KEY,
-        timestamp TEXT NOT NULL,
-        prompt TEXT NOT NULL,
-        actions TEXT NOT NULL,
-        before_snapshot TEXT,
-        after_snapshot TEXT,
-        summary TEXT,
-        status TEXT DEFAULT 'executed',
-        store_domain TEXT
-      )
-    `);
+    this.entries = [];
   }
 
   /**
@@ -39,19 +19,24 @@ class ActionHistory {
     const id = uuidv4();
     const timestamp = new Date().toISOString();
 
-    this.db.prepare(`
-      INSERT INTO action_history (id, timestamp, prompt, actions, before_snapshot, after_snapshot, summary, status, store_domain)
-      VALUES (?, ?, ?, ?, ?, ?, ?, 'executed', ?)
-    `).run(
+    const entry = {
       id,
       timestamp,
       prompt,
-      JSON.stringify(actions),
-      JSON.stringify(beforeSnapshot),
-      JSON.stringify(afterSnapshot),
-      summary || '',
-      storeDomain || ''
-    );
+      actions,
+      before_snapshot: beforeSnapshot,
+      after_snapshot: afterSnapshot,
+      summary: summary || '',
+      status: 'executed',
+      store_domain: storeDomain || '',
+    };
+
+    this.entries.unshift(entry); // newest first
+
+    // Keep max 200 entries in memory
+    if (this.entries.length > 200) {
+      this.entries = this.entries.slice(0, 200);
+    }
 
     return { id, timestamp };
   }
@@ -60,43 +45,29 @@ class ActionHistory {
    * Get all entries, most recent first
    */
   getAll(limit = 50, offset = 0) {
-    const rows = this.db.prepare(
-      'SELECT * FROM action_history ORDER BY timestamp DESC LIMIT ? OFFSET ?'
-    ).all(limit, offset);
-
-    return rows.map(this._parseRow);
+    return this.entries.slice(offset, offset + limit);
   }
 
   /**
    * Get a single entry by ID
    */
   getById(id) {
-    const row = this.db.prepare('SELECT * FROM action_history WHERE id = ?').get(id);
-    return row ? this._parseRow(row) : null;
+    return this.entries.find(e => e.id === id) || null;
   }
 
   /**
    * Update the status of an entry (e.g. 'undone', 'redone')
    */
   updateStatus(id, status) {
-    this.db.prepare('UPDATE action_history SET status = ? WHERE id = ?').run(status, id);
+    const entry = this.entries.find(e => e.id === id);
+    if (entry) entry.status = status;
   }
 
   /**
    * Get total count
    */
   getCount() {
-    const row = this.db.prepare('SELECT COUNT(*) as count FROM action_history').get();
-    return row.count;
-  }
-
-  _parseRow(row) {
-    return {
-      ...row,
-      actions: JSON.parse(row.actions),
-      before_snapshot: row.before_snapshot ? JSON.parse(row.before_snapshot) : null,
-      after_snapshot: row.after_snapshot ? JSON.parse(row.after_snapshot) : null,
-    };
+    return this.entries.length;
   }
 }
 
