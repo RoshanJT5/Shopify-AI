@@ -1,7 +1,7 @@
 {
     "version": 2,
-    "installCommand": "npm install --workspaces --include-workspace-root",
-    "buildCommand": "npm run build --workspace=client",
+    "installCommand": "cd client && npm install",
+    "buildCommand": "cd client && npm run build",
     "outputDirectory": "client/dist",
     "rewrites": [
         {
@@ -15,7 +15,8 @@
     ],
     "functions": {
         "api/index.js": {
-            "includeFiles": "server/**"
+            "includeFiles": "server/**",
+            "maxDuration": 30
         }
     }
 }
