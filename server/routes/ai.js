@@ -23,7 +23,7 @@ function requireShopify(req, res, next) {
  * Takes a prompt, fetches store context, sends to AI, validates, returns preview.
  * Does NOT execute actions — just returns them for user confirmation.
  */
-router.post('/execute', requireShopify, async (req, res, next) => {
+router.post('/', requireShopify, async (req, res, next) => {
   try {
     const { prompt } = req.body;
 
@@ -71,7 +71,7 @@ router.post('/execute', requireShopify, async (req, res, next) => {
  * Actually executes the validated actions on Shopify.
  * Saves before/after snapshots for undo.
  */
-router.post('/execute/confirm', requireShopify, async (req, res, next) => {
+router.post('/confirm', requireShopify, async (req, res, next) => {
   try {
     const { prompt, actions } = req.body;
 
