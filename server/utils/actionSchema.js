@@ -8,7 +8,7 @@ export const ALLOWED_ACTIONS = {
   create_product: {
     description: 'Create a new product in the store',
     required: ['title'],
-    optional: ['description', 'price', 'vendor', 'product_type', 'tags', 'images'],
+    optional: ['description', 'price', 'vendor', 'product_type', 'tags', 'images', 'image_prompts'],
     fieldTypes: {
       title: 'string',
       description: 'string',
@@ -17,6 +17,7 @@ export const ALLOWED_ACTIONS = {
       product_type: 'string',
       tags: 'string',
       images: 'array',
+      image_prompts: 'array',
     },
   },
 

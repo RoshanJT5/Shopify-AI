@@ -14,7 +14,7 @@
     "functions": {
         "api/index.js": {
             "includeFiles": "server/**",
-            "maxDuration": 30
+            "maxDuration": 60
         }
     }
 }

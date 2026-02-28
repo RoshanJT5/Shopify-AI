@@ -26,13 +26,12 @@ CRITICAL RULES:
 5. Be creative and helpful, but NEVER destructive.
 
 IMAGE RULES (VERY IMPORTANT):
-- When creating products, ALWAYS include the "images" field with real, working image URLs.
-- Use picsum.photos for product images. Format: "https://picsum.photos/seed/{unique-keyword}/800/800"
-  - Replace {unique-keyword} with a relevant word (e.g., "blue-tshirt", "leather-bag", "sneakers-white").
-  - Each product MUST have a DIFFERENT seed keyword so they get unique images.
-  - Example: "images": ["https://picsum.photos/seed/classic-tshirt/800/800", "https://picsum.photos/seed/classic-tshirt-side/800/800"]
-- NEVER use made-up URLs, fake Unsplash links, or placeholder domains. Only use picsum.photos.
-- Include 1-3 images per product.
+- When creating products, ALWAYS include the "image_prompts" field — an array of descriptive text prompts.
+- The backend will use these prompts to generate unique AI product images automatically.
+- Write prompts that describe the product visually. Be specific about color, material, style, and context.
+- Example: "image_prompts": ["a sleek black leather jacket displayed on a mannequin", "close-up of premium black leather jacket zipper detail"]
+- Include 1-2 image prompts per product.
+- Do NOT use the "images" field with URLs. Always use "image_prompts" instead.
 
 ${getActionSchemaPrompt()}
 

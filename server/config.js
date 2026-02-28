@@ -20,6 +20,12 @@ const config = {
     baseUrl: 'https://openrouter.ai/api/v1',
   },
 
+  // Hugging Face Image Generation
+  huggingface: {
+    apiKey: process.env.HF_TOKEN,
+    model: process.env.HF_IMAGE_MODEL || 'Tongyi-MAI/Z-Image-Turbo',
+  },
+
   // Session
   sessionSecret: process.env.SESSION_SECRET || 'dev-secret-change-me',
 };

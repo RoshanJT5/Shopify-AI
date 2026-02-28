@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import ShopifyService from '../services/shopify.js';
 import OpenRouterService from '../services/openrouter.js';
+import imageGenerator from '../services/imageGenerator.js';
 import { validateActions } from '../services/validator.js';
 import actionHistory from '../models/actionHistory.js';
 
@@ -94,10 +95,17 @@ router.post('/confirm', requireShopify, async (req, res, next) => {
     ]);
     const beforeSnapshot = { products: productsBefore, pages: pagesBefore };
 
-    // 2. Execute each action
+    // 2. Execute each action (with image generation for create_product)
     const results = [];
     for (const action of validation.actions) {
       try {
+        // Generate images from prompts before creating products
+        if (action.type === 'create_product' && action.image_prompts && action.image_prompts.length > 0) {
+          console.log(`Generating ${action.image_prompts.length} image(s) for "${action.title}"...`);
+          const generatedImages = await imageGenerator.generateImages(action.image_prompts);
+          action.images = generatedImages;
+          delete action.image_prompts; // Clean up — Shopify doesn't know this field
+        }
         const result = await executeAction(req.shopify, action);
         results.push({ action, success: true, result });
       } catch (error) {

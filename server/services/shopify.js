@@ -67,7 +67,13 @@ class ShopifyService {
       product.variants = [{ price: String(price) }];
     }
     if (images && images.length > 0) {
-      product.images = images.map(src => ({ src }));
+      // Support both URL-based ({src}) and base64 ({attachment}) images
+      product.images = images.map(img => {
+        if (typeof img === 'string') return { src: img };       // Plain URL string
+        if (img.attachment) return { attachment: img.attachment }; // Base64 from HF
+        if (img.src) return { src: img.src };                    // URL object
+        return null;
+      }).filter(Boolean);
     }
 
     const data = await this._request('/products.json', 'POST', { product });
