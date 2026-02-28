@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -24,6 +25,9 @@ app.use(cors({
     : ['http://localhost:5173', 'http://127.0.0.1:5173'],
   credentials: true,
 }));
+
+// Cookie parsing (needed for OAuth nonce on Vercel serverless)
+app.use(cookieParser());
 
 // Body parsing
 app.use(express.json({ limit: '1mb' }));
