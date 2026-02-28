@@ -74,7 +74,10 @@ export function validateActions(actions) {
             action[field] = num; // coerce string→number
           }
         } else if (expectedType === 'string') {
-          if (typeof actualValue !== 'string') {
+          // Auto-coerce array tags to comma-separated string (AI often returns arrays)
+          if (field === 'tags' && Array.isArray(actualValue)) {
+            action[field] = actualValue.join(', ');
+          } else if (typeof actualValue !== 'string') {
             errors.push(`${prefix} (${action.type}): Field "${field}" must be a string`);
             fieldError = true;
           } else if (field === 'title' && actualValue.length > 255) {
