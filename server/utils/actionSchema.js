@@ -87,6 +87,15 @@ export const ALLOWED_ACTIONS = {
       meta_description: 'string',
     },
   },
+
+  set_active_theme: {
+    description: 'Set the active/published theme for the store (switch theme)',
+    required: ['theme_id'],
+    optional: [],
+    fieldTypes: {
+      theme_id: 'number',
+    },
+  },
 };
 
 // Actions that are NEVER allowed — the AI is explicitly told not to use these
@@ -98,7 +107,6 @@ export const BLOCKED_ACTIONS = [
   'delete_collection',
   'delete_store',
   'modify_admin_settings',
-  'change_theme',
   'delete_customer',
   'modify_checkout',
 ];

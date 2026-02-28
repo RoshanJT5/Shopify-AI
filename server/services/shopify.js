@@ -152,6 +152,20 @@ class ShopifyService {
     return data.product;
   }
 
+  // ─── Themes ─────────────────────────────────────────────
+
+  async getThemes() {
+    const data = await this._request('/themes.json');
+    return data.themes || [];
+  }
+
+  async setActiveTheme(themeId) {
+    const data = await this._request(`/themes/${themeId}.json`, 'PUT', {
+      theme: { id: themeId, role: 'main' },
+    });
+    return data.theme;
+  }
+
   // ─── Store Info ────────────────────────────────────────
 
   async getShopInfo() {

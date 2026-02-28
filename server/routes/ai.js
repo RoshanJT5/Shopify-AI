@@ -32,13 +32,14 @@ router.post('/', requireShopify, async (req, res, next) => {
     }
 
     // 1. Fetch current store data for context
-    const [products, pages, collections] = await Promise.all([
+    const [products, pages, collections, themes] = await Promise.all([
       req.shopify.getProducts().catch(() => []),
       req.shopify.getPages().catch(() => []),
       req.shopify.getCollections().catch(() => []),
+      req.shopify.getThemes().catch(() => []),
     ]);
 
-    const storeData = { products, pages, collections };
+    const storeData = { products, pages, collections, themes };
 
     // 2. Send to AI
     const aiResponse = await aiService.generateActions(prompt.trim(), storeData);
@@ -59,6 +60,7 @@ router.post('/', requireShopify, async (req, res, next) => {
         productCount: products.length,
         pageCount: pages.length,
         collectionCount: collections.length,
+        themeCount: themes.length,
       },
     });
   } catch (error) {
@@ -157,6 +159,9 @@ async function executeAction(shopify, action) {
 
     case 'generate_seo':
       return shopify.updateProductSEO(action.product_id, action);
+
+    case 'set_active_theme':
+      return shopify.setActiveTheme(action.theme_id);
 
     default:
       throw new Error(`Unknown action type: ${action.type}`);

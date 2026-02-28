@@ -93,6 +93,15 @@ If you cannot fulfill the request with the allowed actions, return:
       context += '\n';
     }
 
+    if (storeData.themes && storeData.themes.length > 0) {
+      context += 'THEMES:\n';
+      storeData.themes.forEach(t => {
+        const role = t.role === 'main' ? '(ACTIVE)' : `(${t.role})`;
+        context += `- ID: ${t.id} | Name: "${t.name}" ${role}\n`;
+      });
+      context += '\n';
+    }
+
     return context;
   }
 
