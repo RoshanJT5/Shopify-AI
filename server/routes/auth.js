@@ -4,6 +4,15 @@ import config from '../config.js';
 
 const router = Router();
 
+// Cookie options for OAuth state
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: config.nodeEnv === 'production',
+  sameSite: config.nodeEnv === 'production' ? 'none' : 'lax',
+  maxAge: 10 * 60 * 1000, // 10 minutes — enough for OAuth flow
+  path: '/',
+};
+
 /**
  * GET /auth/shopify
  * Initiates Shopify OAuth flow — redirects user to Shopify consent screen
@@ -18,10 +27,11 @@ router.get('/shopify', (req, res) => {
   // Clean the domain
   const shop = storeDomain.replace(/^https?:\/\//, '').replace(/\/$/, '');
 
-  // Generate a nonce for CSRF protection
+  // Generate a nonce for CSRF protection — store in cookies (not session)
+  // because Vercel serverless doesn't share MemoryStore across invocations
   const nonce = crypto.randomBytes(16).toString('hex');
-  req.session.shopifyNonce = nonce;
-  req.session.shopifyDomain = shop;
+  res.cookie('shopify_nonce', nonce, COOKIE_OPTIONS);
+  res.cookie('shopify_shop', shop, COOKIE_OPTIONS);
 
   const authUrl = `https://${shop}/admin/oauth/authorize?` +
     `client_id=${config.shopify.clientId}` +
@@ -39,10 +49,17 @@ router.get('/shopify', (req, res) => {
 router.get('/shopify/callback', async (req, res) => {
   const { code, state, shop } = req.query;
 
-  // Verify CSRF nonce
-  if (state !== req.session.shopifyNonce) {
+  // Verify CSRF nonce from cookie (works across Vercel serverless invocations)
+  const savedNonce = req.cookies?.shopify_nonce;
+
+  if (!savedNonce || state !== savedNonce) {
+    console.error('CSRF check failed:', { state, savedNonce, hasCookies: !!req.cookies });
     return res.status(403).send('Invalid state parameter. Possible CSRF attack.');
   }
+
+  // Clear the OAuth cookies
+  res.clearCookie('shopify_nonce', { path: '/' });
+  res.clearCookie('shopify_shop', { path: '/' });
 
   try {
     // Exchange code for access token
@@ -98,7 +115,6 @@ router.post('/disconnect', (req, res) => {
   delete req.session.shopifyAccessToken;
   delete req.session.shopifyDomain;
   delete req.session.shopifyScope;
-  delete req.session.shopifyNonce;
   res.json({ disconnected: true });
 });
 
