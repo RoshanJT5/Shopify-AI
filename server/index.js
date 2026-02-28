@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import session from 'express-session';
+import cookieSession from 'cookie-session';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -15,6 +15,9 @@ import { aiLimiter, generalLimiter } from './middleware/rateLimiter.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
+
+// Trust proxy — required for secure cookies on Vercel (behind a reverse proxy)
+app.set('trust proxy', 1);
 
 // ─── Middleware ───────────────────────────────────────────
 
@@ -33,17 +36,15 @@ app.use(cookieParser());
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Sessions (for Shopify OAuth tokens)
-app.use(session({
-  secret: config.sessionSecret,
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: config.nodeEnv === 'production',
-    httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    sameSite: config.nodeEnv === 'production' ? 'none' : 'lax',
-  },
+// Sessions — using cookie-session (stores data IN the cookie, not server-side)
+// This is critical for Vercel serverless, where MemoryStore resets on each invocation
+app.use(cookieSession({
+  name: 'session',
+  keys: [config.sessionSecret],
+  maxAge: 24 * 60 * 60 * 1000, // 24 hours
+  secure: config.nodeEnv === 'production',
+  httpOnly: true,
+  sameSite: config.nodeEnv === 'production' ? 'none' : 'lax',
 }));
 
 // General rate limiter
