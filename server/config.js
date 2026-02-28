@@ -1,4 +1,5 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
+dotenv.config(); // no-op on Vercel (no .env file), works locally
 
 const config = {
   port: process.env.PORT || 3000,

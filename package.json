@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "AI-powered Shopify store management agent",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "dev:server": "node --watch server/index.js",
@@ -10,6 +11,14 @@
     "build": "npm install --prefix client --include=dev && npm run build --prefix client",
     "start": "node server/index.js",
     "vercel-build": "npm install --prefix client --include=dev && npm run build --prefix client"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "express-session": "^1.18.1",
+    "uuid": "^11.0.5"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
