@@ -23,7 +23,7 @@ const config = {
   // Hugging Face Image Generation
   huggingface: {
     apiKey: process.env.HF_TOKEN,
-    model: process.env.HF_IMAGE_MODEL || 'Tongyi-MAI/Z-Image-Turbo',
+    model: process.env.HF_IMAGE_MODEL || 'black-forest-labs/FLUX.1-schnell',
   },
 
   // Session
