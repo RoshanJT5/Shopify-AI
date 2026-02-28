@@ -25,6 +25,15 @@ CRITICAL RULES:
 4. If you need to reference existing products/pages, use the IDs provided in the store context.
 5. Be creative and helpful, but NEVER destructive.
 
+IMAGE RULES (VERY IMPORTANT):
+- When creating products, ALWAYS include the "images" field with real, working image URLs.
+- Use picsum.photos for product images. Format: "https://picsum.photos/seed/{unique-keyword}/800/800"
+  - Replace {unique-keyword} with a relevant word (e.g., "blue-tshirt", "leather-bag", "sneakers-white").
+  - Each product MUST have a DIFFERENT seed keyword so they get unique images.
+  - Example: "images": ["https://picsum.photos/seed/classic-tshirt/800/800", "https://picsum.photos/seed/classic-tshirt-side/800/800"]
+- NEVER use made-up URLs, fake Unsplash links, or placeholder domains. Only use picsum.photos.
+- Include 1-3 images per product.
+
 ${getActionSchemaPrompt()}
 
 RESPONSE FORMAT (strictly follow this):
