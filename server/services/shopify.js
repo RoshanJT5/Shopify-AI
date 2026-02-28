@@ -64,7 +64,9 @@ class ShopifyService {
     if (product_type) product.product_type = product_type;
     if (tags) product.tags = tags;
     if (price !== undefined) {
-      product.variants = [{ price: String(price) }];
+      product.variants = [{ price: String(price), inventory_management: 'shopify' }];
+    } else {
+      product.variants = [{ inventory_management: 'shopify' }];
     }
     if (images && images.length > 0) {
       // Support both URL-based ({src}) and base64 ({attachment}) images
