@@ -95,20 +95,36 @@ router.post('/confirm', requireShopify, async (req, res, next) => {
     ]);
     const beforeSnapshot = { products: productsBefore, pages: pagesBefore };
 
-    // 2. Execute each action (with image generation for create_product)
+    // 2. Execute each action (with automatic image generation for create_product)
     const results = [];
     for (const action of validation.actions) {
       try {
-        // Generate images from prompts before creating products
-        if (action.type === 'create_product' && action.image_prompts && action.image_prompts.length > 0) {
-          console.log(`Generating ${action.image_prompts.length} image(s) for "${action.title}"...`);
-          const generatedImages = await imageGenerator.generateImages(action.image_prompts);
-          action.images = generatedImages;
-          delete action.image_prompts; // Clean up — Shopify doesn't know this field
+        if (action.type === 'create_product') {
+          // Auto-generate images for EVERY product creation
+          let imagePrompts = action.image_prompts;
+
+          // If AI didn't include image_prompts, auto-create from title
+          if (!imagePrompts || imagePrompts.length === 0) {
+            console.log(`[ImagePipeline] No image_prompts for "${action.title}" — auto-generating from title`);
+            imagePrompts = [`Professional product photo of ${action.title}, studio lighting, white background, e-commerce style`];
+          }
+
+          // Only generate if we don't already have images
+          if (!action.images || action.images.length === 0) {
+            console.log(`[ImagePipeline] Generating ${imagePrompts.length} image(s) for "${action.title}"...`);
+            const generatedImages = await imageGenerator.generateImages(imagePrompts);
+            console.log(`[ImagePipeline] Got ${generatedImages.length} image(s):`, generatedImages.map(img => img.attachment ? `base64(${img.attachment.length} chars)` : `url(${img.src})`));
+            action.images = generatedImages;
+          }
+
+          // Clean up — Shopify doesn't know image_prompts
+          delete action.image_prompts;
         }
+
         const result = await executeAction(req.shopify, action);
-        results.push({ action, success: true, result });
+        results.push({ action: { ...action, images: action.images ? '[images attached]' : undefined }, success: true, result });
       } catch (error) {
+        console.error(`[ImagePipeline] Error executing action:`, error.message);
         results.push({ action, success: false, error: error.message });
       }
     }

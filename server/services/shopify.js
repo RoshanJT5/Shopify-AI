@@ -78,6 +78,14 @@ class ShopifyService {
       }).filter(Boolean);
     }
 
+    console.log(`[Shopify] Creating product "${title}" with ${product.images?.length || 0} image(s)`);
+    if (product.images) {
+      product.images.forEach((img, i) => {
+        if (img.attachment) console.log(`  Image ${i + 1}: base64 (${img.attachment.length} chars)`);
+        if (img.src) console.log(`  Image ${i + 1}: URL ${img.src}`);
+      });
+    }
+
     const data = await this._request('/products.json', 'POST', { product });
     return data.product;
   }
